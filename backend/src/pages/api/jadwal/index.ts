@@ -33,7 +33,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
 
       return sendSuccess(res, { jadwals, total }, 'Jadwal berhasil diambil', 200);
     } else if (req.method === 'POST') {
-      const { nama_kegiatan, deskripsi_kegiatan, tanggal_kegiatan, waktu_kegiatan } = req.body;
+      const { nama_kegiatan, deskripsi_kegiatan, tanggal_kegiatan, waktu_kegiatan, pengulangan, warna_kegiatan } = req.body;
 
       if (!nama_kegiatan || !tanggal_kegiatan) {
         return sendError(res, 'Nama kegiatan dan Tanggal kegiatan wajib diisi', 400);
@@ -45,6 +45,8 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
           deskripsi_kegiatan,
           tanggal_kegiatan: new Date(tanggal_kegiatan),
           waktu_kegiatan: waktu_kegiatan ? new Date(waktu_kegiatan) : null,
+          pengulangan: (pengulangan as any) || 'sekali',
+          warna_kegiatan: warna_kegiatan || '#059669',
           user_id: req.user!.id_user,
         },
       });

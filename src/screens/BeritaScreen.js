@@ -37,7 +37,7 @@ const BeritaScreen = ({ onNavigate }) => {
   // Fallback to absolute URLs or append to BASE_URL. Since we handle network errors too, default to picsum
   const getImageUrl = (path) => {
     if (!path) return 'https://picsum.photos/200/100?grayscale';
-    if (path.startsWith('http')) return path;
+    if (path.startsWith('http') || path.startsWith('data:image/')) return path;
     const baseUrl = api.defaults.baseURL?.replace('/api', '') || 'http://10.0.2.2:3001'; // Default emulator port
     return `${baseUrl}${path}`;
   };

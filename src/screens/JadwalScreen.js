@@ -12,6 +12,7 @@ const JadwalScreen = ({ onNavigate }) => {
   const [selectedDay, setSelectedDay] = useState(new Date().getDate());
   const [currentMonthView, setCurrentMonthView] = useState(new Date());
   
+  const [rawEvents, setRawEvents] = useState([]);
   const [schedules, setSchedules] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -46,6 +47,7 @@ const JadwalScreen = ({ onNavigate }) => {
           type: 'Event',
           start_time: new Date(k.waktu_event).toTimeString().substring(0, 5),
           date: new Date(k.waktu_event),
+          pengulangan: k.pengulangan,
           color: k.warna_event
         }))];
       }
@@ -60,14 +62,14 @@ const JadwalScreen = ({ onNavigate }) => {
             room: j.deskripsi_kegiatan || '-',
             type: 'Pengingat',
             start_time: j.waktu_kegiatan ? new Date(j.waktu_kegiatan).toTimeString().substring(0, 5) : '00:00',
-            date: new Date(j.tanggal_kegiatan),
-            color: colors.primary
+            date: new Date(j.waktu_kegiatan || j.tanggal_kegiatan),
+            pengulangan: j.pengulangan,
+            color: j.warna_kegiatan || colors.primary
           }))];
         }
       }
 
-      combined.sort((a,b) => a.date - b.date);
-      setSchedules(combined);
+      setRawEvents(combined);
     } catch (e) {
       console.error(e);
     } finally {
@@ -78,6 +80,69 @@ const JadwalScreen = ({ onNavigate }) => {
   useEffect(() => {
     fetchJadwal();
   }, [user.role]);
+
+  // Re-expand events for the current month/year view
+  useEffect(() => {
+    const now = new Date();
+    let expanded = [];
+    const targetDaysInMonth = new Date(year, month + 1, 0).getDate();
+
+    rawEvents.forEach(evt => {
+      const baseDate = new Date(evt.date);
+      const baseDateZero = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate());
+
+      const addEventForDay = (d) => {
+        const eventDate = new Date(year, month, d, baseDate.getHours(), baseDate.getMinutes());
+        expanded.push({ ...evt, date: eventDate });
+      };
+
+      if (evt.pengulangan === 'sekali') {
+        // Tampilkan hanya jika bulan/tahun cocok DAN waktunya belum lewat
+        if (baseDate.getMonth() === month && baseDate.getFullYear() === year && baseDate > now) {
+          addEventForDay(baseDate.getDate());
+        }
+      } else if (evt.pengulangan === 'harian') {
+        // Setiap hari kerja di bulan ini, mulai dari tanggal pembuatan
+        for (let d = 1; d <= targetDaysInMonth; d++) {
+          const checkDate = new Date(year, month, d);
+          if (checkDate >= baseDateZero) {
+            const dow = checkDate.getDay();
+            if (dow !== 0 && dow !== 6) addEventForDay(d);
+          }
+        }
+      } else if (evt.pengulangan === 'mingguan') {
+        // Setiap minggu di hari yang sama, mulai dari tanggal pembuatan
+        for (let d = 1; d <= targetDaysInMonth; d++) {
+          const checkDate = new Date(year, month, d);
+          if (checkDate >= baseDateZero && checkDate.getDay() === baseDate.getDay()) {
+            addEventForDay(d);
+          }
+        }
+      } else if (evt.pengulangan === 'bulanan') {
+        // Tanggal yang sama setiap bulan (mulai dari bulan pembuatan onward)
+        const viewMonthDate = new Date(year, month, 1);
+        const baseMonthDate = new Date(baseDate.getFullYear(), baseDate.getMonth(), 1);
+        if (viewMonthDate >= baseMonthDate) {
+          const d = baseDate.getDate();
+          if (d <= targetDaysInMonth) addEventForDay(d);
+        }
+      } else if (evt.pengulangan === 'tahunan') {
+        // Bulan & tanggal yang sama setiap tahun (mulai dari tahun pembuatan onward)
+        if (baseDate.getMonth() === month && year >= baseDate.getFullYear()) {
+          const d = baseDate.getDate();
+          if (d <= targetDaysInMonth) addEventForDay(d);
+        }
+      } else {
+        // Fallback: tampilkan di bulan/tahun yang sama saja
+        if (baseDate.getMonth() === month && baseDate.getFullYear() === year) {
+          addEventForDay(baseDate.getDate());
+        }
+      }
+    });
+
+    expanded.sort((a, b) => a.date - b.date);
+    setSchedules(expanded);
+  }, [rawEvents, currentMonthView]);
 
   const handlePrevMonth = () => {
     setCurrentMonthView(new Date(year, month - 1, 1));
@@ -91,10 +156,33 @@ const JadwalScreen = ({ onNavigate }) => {
 
   const selectedDateFull = new Date(year, month, selectedDay);
   const selectedSchedules = schedules.filter(s => {
-    return s.date.getDate() === selectedDay &&
-           s.date.getMonth() === month &&
-           s.date.getFullYear() === year;
+    const matchDay = s.date.getDate() === selectedDay &&
+                     s.date.getMonth() === month &&
+                     s.date.getFullYear() === year;
+    if (!matchDay) return false;
+    // Hide expired 'sekali' events
+    if (s.pengulangan === 'sekali' && s.date < new Date()) return false;
+    return true;
   });
+
+  // Get colored dot info for a calendar day
+  const getDotsForDay = (day) => {
+    const dayEvents = schedules.filter(s =>
+      s.date.getDate() === day &&
+      s.date.getMonth() === month &&
+      s.date.getFullYear() === year &&
+      !(s.pengulangan === 'sekali' && s.date < new Date())
+    );
+    if (dayEvents.length === 0) return null;
+    // Prioritize non-daily events for dot color
+    const priority = dayEvents.find(e => e.pengulangan !== 'harian');
+    if (priority) {
+      return { color: priority.color || colors.primary, faded: false };
+    }
+    // All are harian – show faded
+    const daily = dayEvents[0];
+    return { color: daily.color || colors.primary, faded: true };
+  };
 
   const handleAddBtn = () => {
     if (isGuest) {
@@ -111,8 +199,31 @@ const JadwalScreen = ({ onNavigate }) => {
     }
   };
 
+  const handleLongPress = (item) => {
+    if (item.typeId === 'kalender') {
+      Alert.alert('Akses Ditolak', 'Konfigurasi kegiatan pusat STIESNU hanya dapat diubah oleh Admin.');
+      return;
+    }
+
+    if (item.typeId === 'jadwal') {
+      Alert.alert('Hapus Jadwal', 'Yakin ingin menghapus pengingat jadwal pribadi ini?', [
+        { text: 'Batal', style: 'cancel' },
+        { text: 'Hapus', style: 'destructive', onPress: async () => {
+             try {
+               const res = await api.delete(`/jadwal/${item.id}`);
+               if (res.data?.success) {
+                 fetchJadwal();
+               }
+             } catch(e) {
+               Alert.alert('Gagal', 'Tidak dapat menghapus jadwal.');
+             }
+        }}
+      ]);
+    }
+  };
+
   const renderScheduleCard = (item, index) => (
-    <View key={index} style={[styles.scheduleCard, { backgroundColor: themeColors.cardBg }]}>
+    <TouchableOpacity key={index} style={[styles.scheduleCard, { backgroundColor: themeColors.cardBg }]} onLongPress={() => handleLongPress(item)}>
       <View style={[styles.timeColumn, { backgroundColor: item.color + '20' }]}>
         <Text style={[styles.timeText, { color: item.color }]}>{item.start_time}</Text>
       </View>
@@ -127,7 +238,7 @@ const JadwalScreen = ({ onNavigate }) => {
            <Ionicons name="location-outline" size={12} /> {item.room}
         </Text>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   return (
@@ -182,10 +293,20 @@ const JadwalScreen = ({ onNavigate }) => {
                       onPress={() => setSelectedDay(item.day)}
                    >
                       <Text style={[styles.dayText, { color: textColor }]}>{item.day}</Text>
-                      {/* Titik indikator jika ada jadwal di tanggal ini */}
-                      {schedules.some(s => s.date.getDate() === item.day && s.date.getMonth() === month && s.date.getFullYear() === year) && (
-                         <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: isSelected ? colors.white : colors.primary, marginTop: 2}} />
-                      )}
+                      {/* Smart colored dot - prioritize non-daily, fade daily */}
+                      {(() => {
+                          const dotInfo = getDotsForDay(item.day);
+                          if (!dotInfo) return null;
+                          const dotColor = isSelected ? colors.white : dotInfo.color;
+                          return (
+                            <View style={{
+                              width: 5, height: 5, borderRadius: 3,
+                              backgroundColor: dotColor,
+                              opacity: dotInfo.faded ? 0.35 : 1,
+                              marginTop: 2
+                            }} />
+                          );
+                       })()}
                    </TouchableOpacity>
                  );
               })}

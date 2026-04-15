@@ -16,10 +16,12 @@ const MenuScreen = ({ onNavigate }) => {
   ];
 
   if (!isGuest) {
-    items.unshift(
-      { icon: 'notifications', label: 'Notifikasi', color: colors.subjectPurple, action: () => onNavigate('Notifikasi') },
-      { icon: 'person-circle-outline', label: 'Edit Profil', color: colors.gray600, action: () => onNavigate('EditProfil') }
-    );
+    items.unshift({ icon: 'person-circle-outline', label: 'Edit Profil', color: colors.gray600, action: () => onNavigate('EditProfil') });
+    if (user.role === 'admin') {
+      items.unshift({ icon: 'notifications', label: 'Notifikasi', color: colors.subjectPurple, action: () => onNavigate('AdminNotifikasi') });
+    } else {
+      items.unshift({ icon: 'notifications', label: 'Notifikasi', color: colors.subjectPurple, action: () => onNavigate('Notifikasi') });
+    }
     items.push({ icon: 'log-out', label: 'Keluar', color: colors.danger, action: async () => {
       await logout();
       onNavigate('Login');

@@ -26,6 +26,7 @@ import AdminEditEventScreen from '../screens/AdminEditEventScreen';
 import AdminBeritaScreen from '../screens/AdminBeritaScreen';
 import AdminAddBeritaScreen from '../screens/AdminAddBeritaScreen';
 import AdminEditBeritaScreen from '../screens/AdminEditBeritaScreen';
+import AdminNotifikasiScreen from '../screens/AdminNotifikasiScreen';
 
 const SCREENS = {
   Home: HomeScreen,
@@ -50,10 +51,11 @@ const SCREENS = {
   AdminAddBerita: AdminAddBeritaScreen,
   AdminEditBerita: AdminEditBeritaScreen,
   AdminEditAkun: AdminEditAkunScreen,
+  AdminNotifikasi: AdminNotifikasiScreen,
 };
 
 const BOTTOM_NAV_ROUTES_USER = ['Home', 'Berita', 'Jadwal', 'Notifikasi', 'Menu'];
-const BOTTOM_NAV_ROUTES_ADMIN = ['AdminHome', 'AdminBerita', 'AdminJadwal', 'AdminAkun', 'Menu'];
+const BOTTOM_NAV_ROUTES_ADMIN = ['AdminHome', 'AdminBerita', 'AdminJadwal', 'AdminAkun', 'AdminNotifikasi', 'Menu'];
 
 const AppNavigator = () => {
   const { user, isLoading } = useAppContext();

@@ -26,48 +26,84 @@ const HomeScreen = ({ onNavigate }) => {
 
   const fetchJadwal = async () => {
     try {
-      let combined = [];
+      let rawEvents = [];
 
-      // Ambil Kalender (untuk semua orang)
+      // 1. Fetch Admin Events
       const kalRes = await api.get('/kalender');
-      if (kalRes.data?.success) {
-        let items = kalRes.data.data.kalender;
-        if (items) {
-          combined = [...combined, ...items.map(k => ({
-            id: 'k_' + k.id_event,
-            subject: k.nama_event,
-            room: k.deskripsi_event || 'Kampus',
-            type: 'Event',
-            start_time: new Date(k.waktu_event).toTimeString().substring(0, 5),
-            date: new Date(k.waktu_event),
-            color: k.warna_event
+      if (kalRes.data?.success && kalRes.data.data.kalender) {
+        rawEvents = [...rawEvents, ...kalRes.data.data.kalender.map(k => ({
+          id: 'k_' + k.id_event,
+          subject: k.nama_event,
+          room: k.deskripsi_event || 'Kampus',
+          type: 'Event',
+          pengulangan: k.pengulangan,
+          date: new Date(k.waktu_event),
+          color: k.warna_event
+        }))];
+      }
+
+      // 2. Fetch Personal Reminders
+      if (!isGuest) {
+        const jadRes = await api.get('/jadwal');
+        if (jadRes.data?.success && jadRes.data.data.jadwals) {
+          rawEvents = [...rawEvents, ...jadRes.data.data.jadwals.map(j => ({
+            id: 'j_' + j.id_jadwal,
+            subject: j.nama_kegiatan,
+            room: j.deskripsi_kegiatan || '-',
+            type: 'Pengingat',
+            pengulangan: j.pengulangan,
+            date: new Date(j.waktu_kegiatan || j.tanggal_kegiatan),
+            color: j.warna_kegiatan || colors.primary
           }))];
         }
       }
 
-      // Ambil Jadwal Pribadi (hanya jika login)
-      if (!isGuest) {
-        const jadRes = await api.get('/jadwal');
-        if (jadRes.data?.success) {
-          let items = jadRes.data.data.jadwals;
-          if (items) {
-            combined = [...combined, ...items.map(j => ({
-              id: 'j_' + j.id_jadwal,
-              subject: j.nama_kegiatan,
-              room: j.deskripsi_kegiatan || '-',
-              type: 'Pengingat',
-              start_time: j.waktu_kegiatan ? new Date(j.waktu_kegiatan).toTimeString().substring(0, 5) : '00:00',
-              date: new Date(j.tanggal_kegiatan),
-              color: colors.primary
-            }))];
+      // 3. Expand occurrences for the next 7 days
+      const now = new Date();
+      let expanded = [];
+
+      for (let offset = 0; offset < 7; offset++) {
+        const targetDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + offset);
+        const targetDayStart = new Date(targetDay.getFullYear(), targetDay.getMonth(), targetDay.getDate());
+        
+        rawEvents.forEach(evt => {
+          const baseDate = new Date(evt.date);
+          const baseDateZero = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate());
+          
+          let match = false;
+          if (evt.pengulangan === 'sekali') {
+            if (baseDateZero.getTime() === targetDayStart.getTime()) match = true;
+          } else if (evt.pengulangan === 'harian') {
+            if (targetDayStart >= baseDateZero) {
+              const dow = targetDayStart.getDay();
+              if (dow !== 0 && dow !== 6) match = true;
+            }
+          } else if (evt.pengulangan === 'mingguan') {
+            if (targetDayStart >= baseDateZero && targetDayStart.getDay() === baseDate.getDay()) match = true;
+          } else if (evt.pengulangan === 'bulanan') {
+            if (targetDayStart >= baseDateZero && targetDayStart.getDate() === baseDate.getDate()) match = true;
+          } else if (evt.pengulangan === 'tahunan') {
+            if (targetDayStart >= baseDateZero && targetDayStart.getMonth() === baseDate.getMonth() && targetDayStart.getDate() === baseDate.getDate()) match = true;
           }
-        }
+
+          if (match) {
+            const occurrenceDate = new Date(targetDayStart.getFullYear(), targetDayStart.getMonth(), targetDayStart.getDate(), baseDate.getHours(), baseDate.getMinutes());
+            // Filter out exact past time
+            if (occurrenceDate >= now) {
+              expanded.push({
+                ...evt,
+                id: `${evt.id}_${offset}`,
+                date: occurrenceDate,
+                start_time: occurrenceDate.toTimeString().substring(0, 5)
+              });
+            }
+          }
+        });
       }
 
-      // Sort by date/time
-      combined.sort((a, b) => a.date - b.date);
-
-      setSchedules(combined.slice(0, 3)); // Only show top 3 for UI
+      // 4. Sort and limit
+      expanded.sort((a, b) => a.date - b.date);
+      setSchedules(expanded.slice(0, 5)); // Show up to 5 items for a better week summary
     } catch (e) {
       console.error('Fetch jadwal error', e);
     } finally {

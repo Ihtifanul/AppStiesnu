@@ -27,6 +27,7 @@ const AdminAddEventScreen = ({ onNavigate }) => {
   const [loading, setLoading] = useState(false);
   const [tandaiTanggal, setTandaiTanggal] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
+  const [showPengulanganPicker, setShowPengulanganPicker] = useState(false);
   const [pengulangan, setPengulangan] = useState('sekali');
 
   const onChangeDate = (event, selectedDate) => {
@@ -62,7 +63,7 @@ const AdminAddEventScreen = ({ onNavigate }) => {
     try {
       const days = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-      return `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()} · ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+      return `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()} · ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
     } catch {
       return 'Pilih tanggal & waktu';
     }
@@ -160,26 +161,17 @@ const AdminAddEventScreen = ({ onNavigate }) => {
             onChangeText={setDeskripsi}
           />
 
-          {/* Opsi Pengulangan */}
-          <View style={[styles.switchRow, { borderBottomWidth: 0, marginTop: 0 }]}>
-             <Text style={styles.label}>Jenis Pengulangan / Siklus</Text>
-             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingBottom: 6 }}>
-                {['sekali', 'harian', 'mingguan', 'bulanan'].map(opt => (
-                   <TouchableOpacity 
-                      key={opt}
-                      onPress={() => setPengulangan(opt)}
-                      style={[
-                         { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, borderWidth: 1, borderColor: colors.primary },
-                         pengulangan === opt && { backgroundColor: colors.primary }
-                      ]}
-                   >
-                     <Text style={[ {fontSize: 12, color: colors.primary, fontWeight: 'bold'}, pengulangan === opt && {color: '#fff'} ]}>
-                        {opt.charAt(0).toUpperCase() + opt.slice(1)}
-                     </Text>
-                   </TouchableOpacity>
-                ))}
-             </ScrollView>
-          </View>
+          {/* Opsi Pengulangan (Dropdown) */}
+          <Text style={[styles.label, { color: themeColors.text }]}>Jenis Pengulangan / Siklus</Text>
+          <TouchableOpacity
+            style={[styles.inputIconWrapper, { borderColor: colors.gray200, backgroundColor: themeColors.cardBg, justifyContent: 'space-between' }]}
+            onPress={() => setShowPengulanganPicker(true)}
+          >
+            <Text style={{ color: themeColors.text, fontSize: 14 }}>
+              {pengulangan.charAt(0).toUpperCase() + pengulangan.slice(1)}
+            </Text>
+            <Ionicons name="chevron-down" size={18} color={themeColors.textMuted} />
+          </TouchableOpacity>
 
           {/* Toggle Tandai Tanggal */}
           <View style={styles.switchRow}>
@@ -234,6 +226,34 @@ const AdminAddEventScreen = ({ onNavigate }) => {
             </View>
             <TouchableOpacity style={styles.closeBtn} onPress={() => setShowColorPicker(false)}>
               <Text style={{ color: colors.primary, fontWeight: '700' }}>Tutup</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Pengulangan Picker Modal */}
+      <Modal visible={showPengulanganPicker} transparent animationType="fade" onRequestClose={() => setShowPengulanganPicker(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalCard, { backgroundColor: themeColors.cardBg }]}>
+            <Text style={[styles.modalTitle, { color: themeColors.text }]}>Pilih Jenis Pengulangan</Text>
+            <View style={{ gap: 10, marginBottom: 20 }}>
+              {['sekali', 'harian', 'mingguan', 'bulanan', 'tahunan'].map(opt => (
+                <TouchableOpacity
+                  key={opt}
+                  onPress={() => { setPengulangan(opt); setShowPengulanganPicker(false); }}
+                  style={[
+                    { paddingVertical: 14, paddingHorizontal: 16, borderRadius: 12, borderWidth: 1, borderColor: colors.gray200 },
+                    pengulangan === opt && { backgroundColor: colors.primary, borderColor: colors.primary }
+                  ]}
+                >
+                  <Text style={[{ fontSize: 15, fontWeight: '600', color: themeColors.text }, pengulangan === opt && { color: '#fff' }]}>
+                    {opt.charAt(0).toUpperCase() + opt.slice(1)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <TouchableOpacity style={styles.closeBtn} onPress={() => setShowPengulanganPicker(false)}>
+              <Text style={{ color: colors.primary, fontWeight: '700' }}>Batal</Text>
             </TouchableOpacity>
           </View>
         </View>

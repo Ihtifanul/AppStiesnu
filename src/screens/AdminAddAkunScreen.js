@@ -24,7 +24,7 @@ const AdminAddAkunScreen = ({ onNavigate }) => {
         onNavigate('AdminAkun');
       }
     } catch (error) {
-       Alert.alert("Error", error.response?.data?.message || "Gagal menambahkan akun.");
+      Alert.alert("Error", error.response?.data?.message || "Gagal menambahkan akun.");
     } finally {
       setLoading(false);
     }
@@ -33,7 +33,7 @@ const AdminAddAkunScreen = ({ onNavigate }) => {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
-      
+
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => onNavigate('AdminAkun')} style={styles.headerBtn}>
@@ -41,7 +41,7 @@ const AdminAddAkunScreen = ({ onNavigate }) => {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Tambahkan Akun</Text>
         <TouchableOpacity onPress={handleSubmit} style={styles.headerBtn} disabled={loading}>
-           {loading ? <ActivityIndicator color={colors.white} size="small"/> : <Ionicons name="checkmark" size={24} color={colors.white} />}
+          {loading ? <ActivityIndicator color={colors.white} size="small" /> : <Ionicons name="checkmark" size={24} color={colors.white} />}
         </TouchableOpacity>
       </View>
 
@@ -49,9 +49,9 @@ const AdminAddAkunScreen = ({ onNavigate }) => {
         <View style={styles.formCard}>
           <Text style={styles.sectionTitle}>Detail Akun</Text>
 
-          <TextInput style={styles.input} placeholder="Username" placeholderTextColor={colors.gray400} value={username} onChangeText={setUsername}/>
-          <TextInput style={styles.input} placeholder="Email" placeholderTextColor={colors.gray400} keyboardType="email-address" value={email} onChangeText={setEmail}/>
-          <TextInput style={styles.input} placeholder="Password" placeholderTextColor={colors.gray400} secureTextEntry value={password} onChangeText={setPassword}/>
+          <TextInput style={styles.input} placeholder="Username" placeholderTextColor={colors.gray400} value={username} onChangeText={setUsername} />
+          <TextInput style={styles.input} placeholder="Email" placeholderTextColor={colors.gray400} keyboardType="email-address" value={email} onChangeText={setEmail} />
+          <TextInput style={styles.input} placeholder="Password" placeholderTextColor={colors.gray400} secureTextEntry value={password} onChangeText={setPassword} />
 
           <Text style={styles.label}>Pilih Role</Text>
           <View style={styles.roleContainer}>
@@ -70,13 +70,13 @@ const AdminAddAkunScreen = ({ onNavigate }) => {
 
           <Text style={styles.label}>Masukkan Foto Profil</Text>
           <TouchableOpacity style={styles.uploadBox}>
-             <Ionicons name="image-outline" size={40} color={colors.gray400} />
-             <View style={styles.uploadIconBadge}>
-                <Ionicons name="arrow-up" size={14} color={colors.white} />
-             </View>
+            <Ionicons name="image-outline" size={40} color={colors.gray400} />
+            <View style={styles.uploadIconBadge}>
+              <Ionicons name="arrow-up" size={14} color={colors.white} />
+            </View>
           </TouchableOpacity>
         </View>
-        <View style={{height:40}}/>
+        <View style={{ height: 40 }} />
       </ScrollView>
     </View>
   );
@@ -84,27 +84,27 @@ const AdminAddAkunScreen = ({ onNavigate }) => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  header: { 
-    backgroundColor: colors.primary, 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    justifyContent: 'space-between', 
-    paddingTop: 52, 
-    paddingBottom: 24, 
-    paddingHorizontal: 20, 
-    borderBottomLeftRadius: 32, 
-    borderBottomRightRadius: 32 
+  header: {
+    backgroundColor: colors.primary,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: 52,
+    paddingBottom: 24,
+    paddingHorizontal: 20,
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32
   },
   headerBtn: { width: 40, height: 40, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { color: colors.white, fontSize: 18, fontWeight: '800' },
-  
+
   content: { padding: 20 },
   formCard: { backgroundColor: colors.white, borderRadius: 16, padding: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 5, elevation: 2 },
   sectionTitle: { fontSize: 14, fontWeight: '800', color: colors.gray800, marginBottom: 16 },
-  
+
   input: { backgroundColor: colors.white, borderWidth: 1, borderColor: colors.gray200, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 12, fontSize: 14, color: colors.gray800, marginBottom: 12 },
   label: { fontSize: 12, color: colors.gray400, marginTop: 4, marginBottom: 8 },
-  
+
   roleContainer: { flexDirection: 'row', gap: 8, marginBottom: 16 },
   roleBtn: { flex: 1, paddingVertical: 10, borderRadius: 8, borderWidth: 1, borderColor: colors.gray200, alignItems: 'center' },
   roleBtnActive: { backgroundColor: colors.primary, borderColor: colors.primary },

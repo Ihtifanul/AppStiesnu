@@ -48,6 +48,7 @@ model Jadwal {
   waktu_kegiatan     DateTime?
   pengulangan        Pengulangan @default(sekali)
   pengingat          Pengingat   @default(tidak_ada)
+  warna_kegiatan     String?   @default("#059669")
   
   user_id            Int
   user               User      @relation(fields: [user_id], references: [id_user], onDelete: Cascade)
@@ -58,6 +59,7 @@ enum Pengulangan {
   harian
   mingguan
   bulanan
+  tahunan
 }
 
 enum Pengingat {

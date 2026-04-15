@@ -93,6 +93,7 @@ const styles = StyleSheet.create({
   scroll: {
     paddingLeft: 20,
     paddingRight: 8,
+    paddingVertical: 10, // Memberikan ruang agar shadow kartu tidak terpotong saat scrolling
   },
 });
 

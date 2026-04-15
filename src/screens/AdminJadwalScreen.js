@@ -12,6 +12,7 @@ const AdminJadwalScreen = ({ onNavigate }) => {
   const [selectedDay, setSelectedDay] = useState(new Date().getDate());
   const [currentMonthView, setCurrentMonthView] = useState(new Date());
 
+  const [rawEvents, setRawEvents] = useState([]);
   const [schedules, setSchedules] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -43,6 +44,7 @@ const AdminJadwalScreen = ({ onNavigate }) => {
           type: 'Event',
           start_time: new Date(k.waktu_event).toTimeString().substring(0, 5),
           date: new Date(k.waktu_event),
+          pengulangan: k.pengulangan,
           color: k.warna_event
         }))];
       }
@@ -58,12 +60,11 @@ const AdminJadwalScreen = ({ onNavigate }) => {
           type: 'Pengingat',
           start_time: j.waktu_kegiatan ? new Date(j.waktu_kegiatan).toTimeString().substring(0, 5) : '00:00',
           date: new Date(j.tanggal_kegiatan),
+          pengulangan: j.pengulangan,
           color: colors.primary
         }))];
       }
-
-      combined.sort((a, b) => a.date - b.date);
-      setSchedules(combined);
+      setRawEvents(combined);
     } catch (e) {
       console.error(e);
     } finally {
@@ -74,6 +75,70 @@ const AdminJadwalScreen = ({ onNavigate }) => {
   useEffect(() => {
     fetchJadwal();
   }, []);
+
+  // Expand events based on current view month/year
+  useEffect(() => {
+    let expanded = [];
+    const targetDaysInMonth = new Date(year, month + 1, 0).getDate();
+
+    rawEvents.forEach(evt => {
+      const baseDate = new Date(evt.date);
+      // Strip time bounds for day comparison
+      const baseDateZero = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate());
+
+      const addEventForDay = (d) => {
+        const eventDate = new Date(year, month, d, baseDate.getHours(), baseDate.getMinutes());
+        expanded.push({ ...evt, date: eventDate });
+      };
+
+      if (evt.pengulangan === 'sekali') {
+        if (baseDate.getMonth() === month && baseDate.getFullYear() === year) {
+          addEventForDay(baseDate.getDate());
+        }
+      } else if (evt.pengulangan === 'harian') {
+        for (let d = 1; d <= targetDaysInMonth; d++) {
+          const checkDate = new Date(year, month, d);
+          if (checkDate >= baseDateZero) {
+            const dayOfWeek = checkDate.getDay();
+            if (dayOfWeek !== 0 && dayOfWeek !== 6) { // Tidak sabtu dan minggu
+              addEventForDay(d);
+            }
+          }
+        }
+      } else if (evt.pengulangan === 'mingguan') {
+        for (let d = 1; d <= targetDaysInMonth; d++) {
+          const checkDate = new Date(year, month, d);
+          if (checkDate >= baseDateZero && checkDate.getDay() === baseDate.getDay()) {
+            addEventForDay(d);
+          }
+        }
+      } else if (evt.pengulangan === 'bulanan') {
+        const d = baseDate.getDate();
+        if (d <= targetDaysInMonth) {
+          const checkDate = new Date(year, month, d);
+          if (checkDate >= baseDateZero) {
+            addEventForDay(d);
+          }
+        }
+      } else if (evt.pengulangan === 'tahunan') {
+        if (baseDate.getMonth() === month) {
+          const d = baseDate.getDate();
+          const checkDate = new Date(year, month, d);
+          if (checkDate >= baseDateZero) {
+            addEventForDay(d);
+          }
+        }
+      } else {
+        // Fallback
+        if (baseDate.getMonth() === month && baseDate.getFullYear() === year) {
+          addEventForDay(baseDate.getDate());
+        }
+      }
+    });
+
+    expanded.sort((a, b) => a.date - b.date);
+    setSchedules(expanded);
+  }, [rawEvents, currentMonthView]);
 
   const handlePrevMonth = () => {
     setCurrentMonthView(new Date(year, month - 1, 1));
@@ -90,6 +155,20 @@ const AdminJadwalScreen = ({ onNavigate }) => {
       s.date.getMonth() === month &&
       s.date.getFullYear() === year;
   });
+
+  // Get colored dot info: non-daily events take priority; daily events shown faded
+  const getDotsForDay = (day) => {
+    const dayEvents = schedules.filter(s =>
+      s.date.getDate() === day &&
+      s.date.getMonth() === month &&
+      s.date.getFullYear() === year
+    );
+    if (dayEvents.length === 0) return null;
+    const priority = dayEvents.find(e => e.pengulangan !== 'harian');
+    if (priority) return { color: priority.color || colors.primary, faded: false };
+    const daily = dayEvents[0];
+    return { color: daily.color || colors.primary, faded: true };
+  };
 
   // Untuk admin, kita tambahkan opsi hapus via press lama
   const handleLongPress = (item) => {
@@ -182,10 +261,20 @@ const AdminJadwalScreen = ({ onNavigate }) => {
                   onPress={() => setSelectedDay(item.day)}
                 >
                   <Text style={[styles.dayText, { color: textColor }]}>{item.day}</Text>
-                  {/* Titik indikator */}
-                  {schedules.some(s => s.date.getDate() === item.day && s.date.getMonth() === month && s.date.getFullYear() === year) && (
-                    <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: isSelected ? colors.white : colors.primary, marginTop: 2 }} />
-                  )}
+                  {/* Smart colored dot - non-daily priority, daily faded */}
+                  {(() => {
+                    const dotInfo = getDotsForDay(item.day);
+                    if (!dotInfo) return null;
+                    const dotColor = isSelected ? colors.white : dotInfo.color;
+                    return (
+                      <View style={{
+                        width: 5, height: 5, borderRadius: 3,
+                        backgroundColor: dotColor,
+                        opacity: dotInfo.faded ? 0.35 : 1,
+                        marginTop: 2
+                      }} />
+                    );
+                  })()}
                 </TouchableOpacity>
               );
             })}

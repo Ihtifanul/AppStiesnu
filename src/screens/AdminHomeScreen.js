@@ -102,6 +102,13 @@ const AdminHomeScreen = ({ onNavigate }) => {
             </View>
             <Text style={styles.actionBtnText}>Manajemen Berita</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity style={styles.actionBtn} onPress={() => onNavigate('AdminNotifikasi')}>
+            <View style={styles.actionIconBox}>
+               <Ionicons name="notifications" size={20} color={colors.primary} />
+            </View>
+            <Text style={styles.actionBtnText}>Manajemen Notifikasi</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </View>

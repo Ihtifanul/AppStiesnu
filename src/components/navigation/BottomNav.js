@@ -20,17 +20,18 @@ const NAV_ITEMS_USER = [
 ];
 
 const NAV_ITEMS_ADMIN = [
-  { name: 'Beranda', icon: 'home', activeIcon: 'home', route: 'AdminHome' },
+  { name: 'Beranda', icon: 'home-outline', activeIcon: 'home', route: 'AdminHome' },
   { name: 'Berita', icon: 'newspaper-outline', activeIcon: 'newspaper', route: 'AdminBerita' },
   { name: 'Jadwal', icon: 'calendar-outline', activeIcon: 'calendar', route: 'AdminJadwal' },
-  { name: 'User', icon: 'person-outline', activeIcon: 'person', route: 'AdminAkun' },
+  { name: 'Akun', icon: 'person-outline', activeIcon: 'person', route: 'AdminAkun' },
+  { name: 'Notif', icon: 'notifications-outline', activeIcon: 'notifications', route: 'AdminNotifikasi' },
   { name: 'Menu', icon: 'menu-outline', activeIcon: 'menu', route: 'Menu' },
 ];
 
 const BottomNav = ({ activeRoute, onNavigate, userRole }) => {
   const { themeColors } = useAppContext();
   const NAV_ITEMS = userRole === 'admin' ? NAV_ITEMS_ADMIN : NAV_ITEMS_USER;
-  const scaleAnims = useRef(Math.max(NAV_ITEMS_USER.length, NAV_ITEMS_ADMIN.length) ? Array(5).fill(0).map(() => new Animated.Value(1)) : []).current;
+  const scaleAnims = useRef(Array(6).fill(0).map(() => new Animated.Value(1))).current;
 
   const handlePress = (route, index) => {
     // If the index exceeds scaleAnims for some reason, ignore animation
