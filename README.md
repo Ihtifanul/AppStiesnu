@@ -1,4 +1,4 @@
-# Panduan Menjalankan Aplikasi STIESNU Setelah Clone/Pull
+# Panduan Menjalankan Aplikasi STIESNU Setelah Clone/Pull dari Git Hub
 
 ## 1. Mengetahui IP Address (WiFi/Hotspot)
 IP address ini diperlukan agar HP dan PC/Laptop terhubung ke server yang sama.

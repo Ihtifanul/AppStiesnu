@@ -4,9 +4,9 @@ import { Platform } from 'react-native';
 
 // Use explicit IPv4 for physical device compatibility with Expo Go.
 // Current IP checked via ipconfig.
-const BASE_URL = Platform.OS === 'web' 
-  ? 'http://localhost:3001/api' 
-  : 'http://10.139.210.139:3001/api';
+const BASE_URL = Platform.OS === 'web'
+    ? 'http://localhost:3001/api'
+    : 'http://10.139.210.139:3001/api';
 
 const api = axios.create({
     baseURL: BASE_URL,
