@@ -1,0 +1,102 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// User Model
+model User {
+  id_user       Int       @id @default(autoincrement())
+  nama          String
+  tanggal_lahir DateTime?
+  email         String    @unique
+  password      String
+  role          Role      @default(user)
+  createdAt     DateTime  @default(now())
+  foto_profil   String?   @db.LongText
+
+  jadwals       Jadwal[]
+}
+
+enum Role {
+  user
+  admin
+  staff
+  guest
+}
+
+// Berita Model
+model Berita {
+  id_berita     Int    @id @default(autoincrement())
+  judul         String
+  link_url      String
+  gambar        String? @db.LongText
+}
+
+// Jadwal Model
+model Jadwal {
+  id_jadwal          Int       @id @default(autoincrement())
+  nama_kegiatan      String
+  deskripsi_kegiatan String?   @db.LongText
+  tanggal_kegiatan   DateTime
+  waktu_kegiatan     DateTime?
+  pengulangan        Pengulangan @default(sekali)
+  pengingat          Pengingat   @default(tidak_ada)
+  
+  user_id            Int
+  user               User      @relation(fields: [user_id], references: [id_user], onDelete: Cascade)
+}
+
+enum Pengulangan {
+  sekali
+  harian
+  mingguan
+  bulanan
+}
+
+enum Pengingat {
+  tidak_ada
+  lima_menit
+  sepuluh_menit
+  lima_belas_menit
+  tiga_puluh_menit
+  satu_jam
+  empat_jam
+  satu_hari
+  dua_hari
+  tiga_hari
+  satu_minggu
+}
+
+// Kalender Model
+model Kalender {
+  id_event        Int      @id @default(autoincrement())
+  nama_event      String
+  waktu_event     DateTime
+  deskripsi_event String?  @db.LongText
+  warna_event     String?  @default("#4ADE80") // Default hijau
+  pengulangan     Pengulangan @default(sekali)
+}
+
+// Notifikasi Model
+model Notifikasi {
+  id_notifikasi Int      @id @default(autoincrement())
+  judul         String
+  createdAt     DateTime @default(now())
+}
+
+// Email OTP for registration
+model EmailOTP {
+  id            Int      @id @default(autoincrement())
+  email         String   @unique
+  otp           String
+  is_verified   Boolean  @default(false)
+  expires_at    DateTime
+  createdAt     DateTime @default(now())
+}
