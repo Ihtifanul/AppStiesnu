@@ -58,7 +58,13 @@ const AdminAkunScreen = ({ onNavigate }) => {
 
   const renderItem = ({ item }) => (
     <View style={[styles.userCard, { backgroundColor: themeColors.cardBg }]}>
-      <Image source={{ uri: item.foto_profil || 'https://i.pravatar.cc/150?img=11' }} style={styles.userAvatar} />
+      {item.foto_profil ? (
+        <Image source={{ uri: item.foto_profil }} style={styles.userAvatar} />
+      ) : (
+        <View style={[styles.userAvatar, { backgroundColor: themeColors.background, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#e5e7eb' }]}>
+          <Ionicons name="person" size={24} color={themeColors.textMuted || '#9ca3af'} />
+        </View>
+      )}
       <View style={styles.userInfo}>
         <Text style={[styles.userName, { color: themeColors.text }]}>{item.nama}</Text>
         <Text style={{ color: themeColors.textMuted, fontSize: 11, marginBottom: 4 }}>{item.email}</Text>

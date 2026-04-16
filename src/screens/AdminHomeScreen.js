@@ -59,7 +59,13 @@ const AdminHomeScreen = ({ onNavigate }) => {
             </View>
           </View>
           <TouchableOpacity style={styles.avatarWrapper} onPress={() => onNavigate('Menu')}>
-            <Image source={{ uri: user?.foto_profil || 'https://i.pravatar.cc/150?img=11' }} style={styles.avatar} />
+            {user?.foto_profil ? (
+              <Image source={{ uri: user.foto_profil }} style={styles.avatar} />
+            ) : (
+              <View style={[styles.avatar, { backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center' }]}>
+                <Ionicons name="person" size={24} color={colors.white} />
+              </View>
+            )}
             <View style={styles.crownBadge}>
               <Ionicons name="star" size={10} color={colors.primary} />
             </View>
