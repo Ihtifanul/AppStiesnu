@@ -70,7 +70,7 @@ async function main() {
 
   const berita3 = await prisma.berita.create({
     data: {
-      judul: 'Keluarga Besar STIESNU Bengkulu Ucapkan Selamat atas Pelantikan Prof. Dr. H. Khairuddin Wahid, MA sebagai Rektor UINFAS BengkuluRamadhan Penuh Berkah: STIESNU Bengkulu Resmi Buka Prodi Pendidikan Guru Madrasah Ibtidaiyah (PGMI)',
+      judul: 'Keluarga Besar STIESNU Bengkulu Ucapkan Selamat atas Pelantikan Prof. Dr. H. Khairuddin Wahid, MA sebagai Rektor UINFAS Bengkulu',
       link_url: 'https://stiesnu-bengkulu.ac.id/ramadhan-penuh-berkah-stiesnu-bengkulu-resmi-buka-prodi-pendidikan-guru-madrasah-ibtidaiyah-pgmi',
       gambar: 'https://stiesnu-bengkulu.ac.id/wp-content/uploads/Screenshot_235.png',
     },

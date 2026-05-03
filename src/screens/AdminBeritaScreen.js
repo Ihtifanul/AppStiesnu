@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, Image, S
 import { Ionicons } from '@expo/vector-icons';
 import colors from '../constants/colors';
 import { useAppContext } from '../context/AppContext';
-import api from '../config/api';
+import api, { getAbsoluteUrl } from '../config/api';
 
 const AdminBeritaScreen = ({ onNavigate }) => {
   const { themeColors, user } = useAppContext();
@@ -49,9 +49,7 @@ const AdminBeritaScreen = ({ onNavigate }) => {
 
   const getImageUrl = (path) => {
     if (!path) return 'https://picsum.photos/200/100?grayscale';
-    if (path.startsWith('http') || path.startsWith('data:image/')) return path;
-    const baseUrl = api.defaults.baseURL?.replace('/api', '') || 'http://10.0.2.2:3001';
-    return `${baseUrl}${path}`;
+    return getAbsoluteUrl(path);
   };
 
   const filteredBerita = berita.filter(b =>
